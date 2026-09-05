@@ -36,6 +36,9 @@ class MainActivity : ComponentActivity() {
                 val favorites by viewModel.favorites.collectAsState()
                 val speedResult by viewModel.speedTestResult.collectAsState()
                 val isTestingSpeed by viewModel.isTestingSpeed.collectAsState()
+                val isUpdating by viewModel.isUpdating.collectAsState()
+                val updateResult by viewModel.updateResult.collectAsState()
+                val updateIsError by viewModel.updateIsError.collectAsState()
                 val protonDetected = remember { viewModel.isProtonVpnInstalled() }
 
                 if (playingChannel != null) {
@@ -97,7 +100,11 @@ class MainActivity : ComponentActivity() {
                                     onSave = { viewModel.saveSourceConfig(it) },
                                     onForceUpdate = { viewModel.refreshChannelsFromSources() },
                                     protonVpnDetected = protonDetected,
-                                    onOpenProtonVpn = { viewModel.openProtonVpn() }
+                                    onOpenProtonVpn = { viewModel.openProtonVpn() },
+                                    isUpdating = isUpdating,
+                                    updateResult = updateResult,
+                                    updateIsError = updateIsError,
+                                    onDismissUpdateResult = { viewModel.dismissUpdateResult() }
                                 )
                             }
                         }

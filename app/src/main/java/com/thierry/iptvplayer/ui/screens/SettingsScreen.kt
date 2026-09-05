@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.thierry.iptvplayer.data.model.SourceConfig
+import com.thierry.iptvplayer.ui.components.DismissibleBanner
 import com.thierry.iptvplayer.ui.theme.IndustrialColors
 
 @Composable
@@ -16,7 +17,11 @@ fun SettingsScreen(
     onSave: (SourceConfig) -> Unit,
     onForceUpdate: () -> Unit,
     protonVpnDetected: Boolean,
-    onOpenProtonVpn: () -> Unit
+    onOpenProtonVpn: () -> Unit,
+    isUpdating: Boolean,
+    updateResult: String?,
+    updateIsError: Boolean,
+    onDismissUpdateResult: () -> Unit
 ) {
     var m3uUrl by remember { mutableStateOf(currentConfig.m3uUrl ?: "") }
     var xtreamHost by remember { mutableStateOf(currentConfig.xtreamHost ?: "") }
@@ -79,18 +84,32 @@ fun SettingsScreen(
 
         Spacer(Modifier.height(28.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(onClick = {
-                onSave(
-                    SourceConfig(
-                        m3uUrl = m3uUrl.ifBlank { null },
-                        xtreamHost = xtreamHost.ifBlank { null },
-                        xtreamUser = xtreamUser.ifBlank { null },
-                        xtreamPass = xtreamPass.ifBlank { null }
+            Button(
+                enabled = !isUpdating,
+                onClick = {
+                    onSave(
+                        SourceConfig(
+                            m3uUrl = m3uUrl.ifBlank { null },
+                            xtreamHost = xtreamHost.ifBlank { null },
+                            xtreamUser = xtreamUser.ifBlank { null },
+                            xtreamPass = xtreamPass.ifBlank { null }
+                        )
                     )
-                )
-            }) { Text("ENREGISTRER") }
+                }
+            ) { Text(if (isUpdating) "PATIENTE…" else "ENREGISTRER") }
 
-            OutlinedButton(onClick = onForceUpdate) { Text("METTRE À JOUR") }
+            OutlinedButton(enabled = !isUpdating, onClick = onForceUpdate) {
+                Text(if (isUpdating) "MISE À JOUR…" else "METTRE À JOUR")
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+        updateResult?.let {
+            DismissibleBanner(
+                message = it,
+                onDismiss = onDismissUpdateResult,
+                isError = updateIsError
+            )
         }
     }
 }

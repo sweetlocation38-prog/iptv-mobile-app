@@ -36,6 +36,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isUpdating = MutableStateFlow(false)
     val isUpdating: StateFlow<Boolean> = _isUpdating
 
+    // Résultat de la dernière tentative d'enregistrement/mise à jour des sources,
+    // affiché dans un bandeau fermable sur l'écran Réglages.
+    private val _updateResult = MutableStateFlow<String?>(null)
+    val updateResult: StateFlow<String?> = _updateResult
+    private val _updateIsError = MutableStateFlow(false)
+    val updateIsError: StateFlow<Boolean> = _updateIsError
+
     // Résultat du test de débit — rempli UNIQUEMENT quand l'utilisateur appuie sur
     // "Tester maintenant". Aucune vérification automatique, aucune notification.
     private val _speedTestResult = MutableStateFlow<SpeedTestResult?>(null)
@@ -55,12 +62,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshChannelsFromSources() {
         viewModelScope.launch(Dispatchers.IO) {
             _isUpdating.value = true
-            val updated = runCatching { repository.refreshChannels() }
-                .getOrDefault(_channels.value)
-            _channels.value = updated
-            applyGrouping()
+            val result = runCatching { repository.refreshChannels() }
+            result.onSuccess { r ->
+                _channels.value = r.channels
+                applyGrouping()
+                _updateIsError.value = r.errorMessage != null
+                _updateResult.value = when {
+                    !r.sourceConfigured -> "Aucune source configurée. Renseigne une URL M3U ou des identifiants Xtream Codes."
+                    r.errorMessage != null -> "Échec : ${r.errorMessage}"
+                    else -> "${r.channels.size} chaînes mises à jour avec succès"
+                }
+            }.onFailure { e ->
+                _updateIsError.value = true
+                _updateResult.value = "Erreur inattendue : ${e.message ?: "réessaie"}"
+            }
             _isUpdating.value = false
         }
+    }
+
+    fun dismissUpdateResult() {
+        _updateResult.value = null
     }
 
     fun setGroupMode(mode: GroupMode) {

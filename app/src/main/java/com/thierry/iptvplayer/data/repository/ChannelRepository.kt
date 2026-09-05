@@ -15,6 +15,12 @@ import com.thierry.iptvplayer.data.parser.XtreamCodeClient
  */
 class ChannelRepository(context: Context) {
 
+    data class RefreshResult(
+        val channels: List<Channel>,
+        val errorMessage: String?,
+        val sourceConfigured: Boolean
+    )
+
     private val store = PlaylistStore(context)
     private val m3uParser = M3UParser()
 
@@ -28,16 +34,23 @@ class ChannelRepository(context: Context) {
     /**
      * Recharge les chaînes depuis les sources configurées et les met en cache.
      * Ne récupère PAS l'EPG (guide des programmes) — cf. demande initiale.
+     * Retourne aussi un message d'erreur explicite si une source échoue, pour que
+     * l'écran Réglages puisse te dire clairement ce qui s'est passé.
      */
-    fun refreshChannels(): List<Channel> {
+    fun refreshChannels(): RefreshResult {
         val config = store.loadConfig()
         val channels = mutableListOf<Channel>()
+        var sourceConfigured = false
+        var errorMessage: String? = null
 
         config.m3uUrl?.takeIf { it.isNotBlank() }?.let { url ->
+            sourceConfigured = true
             runCatching { channels.addAll(m3uParser.fetchAndParse(url)) }
+                .onFailure { errorMessage = "M3U : ${it.message ?: "échec de connexion"}" }
         }
 
         if (!config.xtreamHost.isNullOrBlank() && !config.xtreamUser.isNullOrBlank()) {
+            sourceConfigured = true
             runCatching {
                 val client = XtreamCodeClient(
                     host = config.xtreamHost,
@@ -46,11 +59,11 @@ class ChannelRepository(context: Context) {
                 )
                 val categories = client.fetchLiveCategories()
                 channels.addAll(client.fetchLiveStreams(categories))
-            }
+            }.onFailure { errorMessage = "Xtream Codes : ${it.message ?: "échec de connexion"}" }
         }
 
         store.saveChannels(channels)
-        return channels
+        return RefreshResult(channels, errorMessage, sourceConfigured)
     }
 
     fun groupByCountry(channels: List<Channel>): List<ChannelGroup> =
