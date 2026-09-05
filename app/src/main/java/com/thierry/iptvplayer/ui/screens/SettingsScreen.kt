@@ -46,6 +46,11 @@ fun SettingsScreen(
             fontWeight = FontWeight.Bold,
             color = IndustrialColors.TextPrimary
         )
+        Text(
+            "Version installée : ${com.thierry.iptvplayer.BuildConfig.VERSION_NAME}",
+            color = IndustrialColors.Accent,
+            style = MaterialTheme.typography.labelMedium
+        )
         Spacer(Modifier.height(20.dp))
 
         Text("Source M3U", color = IndustrialColors.TextSecondary)
