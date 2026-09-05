@@ -37,6 +37,7 @@ class MainActivity : ComponentActivity() {
                 val speedResult by viewModel.speedTestResult.collectAsState()
                 val isTestingSpeed by viewModel.isTestingSpeed.collectAsState()
                 val isUpdating by viewModel.isUpdating.collectAsState()
+                val isConnected by viewModel.isConnected.collectAsState()
                 val updateResult by viewModel.updateResult.collectAsState()
                 val updateIsError by viewModel.updateIsError.collectAsState()
                 val protonDetected = remember { viewModel.isProtonVpnInstalled() }
@@ -102,6 +103,7 @@ class MainActivity : ComponentActivity() {
                                     protonVpnDetected = protonDetected,
                                     onOpenProtonVpn = { viewModel.openProtonVpn() },
                                     isUpdating = isUpdating,
+                                    isConnected = isConnected,
                                     updateResult = updateResult,
                                     updateIsError = updateIsError,
                                     onDismissUpdateResult = { viewModel.dismissUpdateResult() }

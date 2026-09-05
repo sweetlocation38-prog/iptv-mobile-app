@@ -36,6 +36,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isUpdating = MutableStateFlow(false)
     val isUpdating: StateFlow<Boolean> = _isUpdating
 
+    // État de connexion à la source (M3U / Xtream Codes) pour le bouton dédié.
+    // null = jamais tenté, true = dernière tentative réussie, false = échec.
+    private val _isConnected = MutableStateFlow<Boolean?>(null)
+    val isConnected: StateFlow<Boolean?> = _isConnected
+
     // Résultat de la dernière tentative d'enregistrement/mise à jour des sources,
     // affiché dans un bandeau fermable sur l'écran Réglages.
     private val _updateResult = MutableStateFlow<String?>(null)
@@ -67,6 +72,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _channels.value = r.channels
                 applyGrouping()
                 _updateIsError.value = r.errorMessage != null
+                _isConnected.value = r.sourceConfigured && r.errorMessage == null
                 _updateResult.value = when {
                     !r.sourceConfigured -> "Aucune source configurée. Renseigne une URL M3U ou des identifiants Xtream Codes."
                     r.errorMessage != null -> "Échec : ${r.errorMessage}"
@@ -74,6 +80,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }.onFailure { e ->
                 _updateIsError.value = true
+                _isConnected.value = false
                 _updateResult.value = "Erreur inattendue : ${e.message ?: "réessaie"}"
             }
             _isUpdating.value = false

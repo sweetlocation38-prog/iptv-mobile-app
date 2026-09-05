@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.thierry.iptvplayer.data.model.SourceConfig
@@ -22,6 +23,7 @@ fun SettingsScreen(
     protonVpnDetected: Boolean,
     onOpenProtonVpn: () -> Unit,
     isUpdating: Boolean,
+    isConnected: Boolean?,
     updateResult: String?,
     updateIsError: Boolean,
     onDismissUpdateResult: () -> Unit
@@ -87,36 +89,27 @@ fun SettingsScreen(
         }
 
         Spacer(Modifier.height(28.dp))
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                enabled = !isUpdating,
-                onClick = {
-                    onSave(
-                        SourceConfig(
-                            m3uUrl = m3uUrl.ifBlank { null },
-                            xtreamHost = xtreamHost.ifBlank { null },
-                            xtreamUser = xtreamUser.ifBlank { null },
-                            xtreamPass = xtreamPass.ifBlank { null }
-                        )
+        ConnectButton(
+            isConnected = isConnected,
+            isUpdating = isUpdating,
+            onClick = {
+                onSave(
+                    SourceConfig(
+                        m3uUrl = m3uUrl.ifBlank { null },
+                        xtreamHost = xtreamHost.ifBlank { null },
+                        xtreamUser = xtreamUser.ifBlank { null },
+                        xtreamPass = xtreamPass.ifBlank { null }
                     )
-                }
-            ) { Text("ENREGISTRER") }
-
-            OutlinedButton(enabled = !isUpdating, onClick = onForceUpdate) {
-                Text("METTRE À JOUR")
-            }
-
-            if (isUpdating) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = IndustrialColors.Accent,
-                    strokeWidth = 2.dp
                 )
             }
-        }
+        )
+
+        Spacer(Modifier.height(12.dp))
+        OutlinedButton(
+            enabled = !isUpdating,
+            onClick = onForceUpdate,
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("RAFRAÎCHIR LA LISTE DES CHAÎNES") }
 
         Spacer(Modifier.height(16.dp))
         updateResult?.let {
@@ -126,5 +119,44 @@ fun SettingsScreen(
                 isError = updateIsError
             )
         }
+    }
+}
+
+@Composable
+private fun ConnectButton(
+    isConnected: Boolean?,
+    isUpdating: Boolean,
+    onClick: () -> Unit
+) {
+    val label = when {
+        isUpdating -> "CONNEXION…"
+        isConnected == true -> "CONNECTÉ ✓"
+        isConnected == false -> "NON CONNECTÉ — RÉESSAYER"
+        else -> "SE CONNECTER"
+    }
+    val containerColor = when {
+        isUpdating -> IndustrialColors.SurfaceVariant
+        isConnected == true -> Color(0xFF2E7D32)
+        isConnected == false -> IndustrialColors.Accent
+        else -> IndustrialColors.SurfaceVariant
+    }
+
+    Button(
+        onClick = onClick,
+        enabled = !isUpdating,
+        colors = ButtonDefaults.buttonColors(containerColor = containerColor),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+    ) {
+        if (isUpdating) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = Color.White,
+                strokeWidth = 2.dp
+            )
+            Spacer(Modifier.width(10.dp))
+        }
+        Text(label, fontWeight = FontWeight.Bold)
     }
 }
