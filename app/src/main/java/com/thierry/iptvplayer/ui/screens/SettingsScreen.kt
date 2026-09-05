@@ -2,8 +2,11 @@ package com.thierry.iptvplayer.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,6 +35,7 @@ fun SettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(IndustrialColors.Background)
+            .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
         Text(
@@ -83,7 +87,10 @@ fun SettingsScreen(
         }
 
         Spacer(Modifier.height(28.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Button(
                 enabled = !isUpdating,
                 onClick = {
@@ -96,10 +103,18 @@ fun SettingsScreen(
                         )
                     )
                 }
-            ) { Text(if (isUpdating) "PATIENTE…" else "ENREGISTRER") }
+            ) { Text("ENREGISTRER") }
 
             OutlinedButton(enabled = !isUpdating, onClick = onForceUpdate) {
-                Text(if (isUpdating) "MISE À JOUR…" else "METTRE À JOUR")
+                Text("METTRE À JOUR")
+            }
+
+            if (isUpdating) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = IndustrialColors.Accent,
+                    strokeWidth = 2.dp
+                )
             }
         }
 
