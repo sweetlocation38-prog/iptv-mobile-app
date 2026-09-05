@@ -7,6 +7,15 @@ android {
     namespace = "com.thierry.iptvplayer"
     compileSdk = 34
 
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     defaultConfig {
         // applicationId distinct de la version TV pour pouvoir installer les deux
         applicationId = "com.thierry.iptvplayer.mobile"
