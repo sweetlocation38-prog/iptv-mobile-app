@@ -52,8 +52,10 @@ class ChannelRepository(context: Context) {
         if (!config.xtreamHost.isNullOrBlank() && !config.xtreamUser.isNullOrBlank()) {
             sourceConfigured = true
             runCatching {
+                val resolvedHost = XtreamCodeClient.resolveBaseUrl(config.xtreamHost)
+                    ?: throw Exception("Aucun port trouvé automatiquement pour ce serveur. Vérifie l'adresse ou ajoute le port donné par ton fournisseur (ex: :8080).")
                 val client = XtreamCodeClient(
-                    host = config.xtreamHost,
+                    host = resolvedHost,
                     username = config.xtreamUser,
                     password = config.xtreamPass.orEmpty()
                 )
